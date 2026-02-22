@@ -47,7 +47,7 @@ MCP_MODE=http npm start
 ## Connect in Lovable
 
 1. In Lovable: **Settings → Integrations → MCP Servers** (or equivalent).
-2. **URL:** `https://<your-railway-domain>/sse`
+2. **URL:** `https://<your-railway-domain>/sse` — **must end with `/sse`**, not `/mcp`. (This server has no `/mcp` route.)
 3. If you set `MCP_API_KEY` on Railway, use **Authorization: Bearer &lt;MCP_API_KEY&gt;** in Lovable.
 4. Save. Lovable can then use Vapi tools (list_assistants, create_call, etc.) for voice agents and outbound calls.
 5. **Behavior rules (optional):** So the agent calls `get_vapi_behavior_rules()` first when building assistants/calls, add the short instruction from [docs/LOVABLE_VAPI_RULES.md](docs/LOVABLE_VAPI_RULES.md) to Custom Knowledge or Project Instruction.
@@ -92,6 +92,12 @@ This MCP is standalone for building and managing Vapi voice agents. Assistant an
 ## Environment
 
 See `.env.example`. Important: `VAPI_TOKEN`, `MCP_MODE`, `PORT`/`HOST`. Optional: `MCP_API_KEY`, `LOG_LEVEL`.
+
+## Troubleshooting (Connection failed in Lovable)
+
+- **URL must be** `https://<domain>/sse`. Using `.../mcp` returns 404 and causes "Connection failed".
+- **Bearer token:** If `MCP_API_KEY` is set on Railway, enter the same value in Lovable (Bearer token / API key).
+- **Health check:** Open `https://<domain>/health` in a browser; you should see `{"status":"ok",...}`. If not, the service may be down or the domain wrong.
 
 ## Security
 

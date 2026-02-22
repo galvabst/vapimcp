@@ -2,6 +2,10 @@
 
 This doc describes how Vapi behavior rules work and what to set in Lovable so the agent follows them without pasting long rule text.
 
+## MCP server URL (important)
+
+When adding the Vapi MCP in Lovable, use **`https://<your-railway-domain>/sse`**. The path must be **`/sse`**, not `/mcp`. Using `/mcp` will cause "Connection failed".
+
 ## MCP first
 
 All rules and detail come from the **Vapi MCP**. Lovable only needs a short instruction so the agent calls the right tool first and follows the returned rules.
