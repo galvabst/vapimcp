@@ -2,7 +2,7 @@
  * Vapi assistants: list, get, create.
  */
 
-import { vapiGet, vapiPost } from '../../lib/vapi-client.js';
+import { vapiGet, vapiPost, vapiPatch, vapiDelete } from '../../lib/vapi-client.js';
 
 function normalizeListResponse(data: unknown): unknown[] {
   if (Array.isArray(data)) return data;
@@ -48,4 +48,38 @@ export async function handleCreateAssistant(args: Record<string, unknown>): Prom
   }
   const data = await vapiPost<Record<string, unknown>>('/assistant', body);
   return data ?? {};
+}
+
+export async function handleUpdateAssistant(args: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const assistantId = String(args?.assistantId ?? '');
+  if (!assistantId) return { error: 'assistantId is required' };
+  const body: Record<string, unknown> = {};
+  if (typeof args?.name === 'string') body.name = args.name;
+  if (typeof args?.firstMessage === 'string') body.firstMessage = args.firstMessage;
+  if (typeof args?.systemPrompt === 'string') body.systemPrompt = args.systemPrompt;
+  if (typeof args?.serverUrl === 'string') body.serverUrl = args.serverUrl;
+  if (typeof args?.model === 'string') {
+    try {
+      body.model = JSON.parse(args.model);
+    } catch {
+      // leave unset if invalid
+    }
+  }
+  if (typeof args?.voice === 'string') {
+    try {
+      body.voice = JSON.parse(args.voice);
+    } catch {
+      // leave unset if invalid
+    }
+  }
+  if (Object.keys(body).length === 0) return { error: 'At least one field to update is required (name, firstMessage, systemPrompt, model, voice, serverUrl)' };
+  const data = await vapiPatch<Record<string, unknown>>(`/assistant/${assistantId}`, body);
+  return data ?? {};
+}
+
+export async function handleDeleteAssistant(args: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const assistantId = String(args?.assistantId ?? '');
+  if (!assistantId) return { error: 'assistantId is required' };
+  await vapiDelete<undefined>(`/assistant/${assistantId}`);
+  return { deleted: true, assistantId };
 }

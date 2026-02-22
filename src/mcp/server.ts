@@ -15,6 +15,12 @@ import * as phoneNumbers from './handlers/phone_numbers.js';
 import * as vapiTools from './handlers/tools.js';
 import * as presets from './handlers/presets.js';
 import { getRequiredForTool, validateRequired } from './validate.js';
+import {
+  type SessionState,
+  RULES_PROTECTED_TOOLS,
+  RULES_REQUIRED_MESSAGE,
+  RULES_TOPICS,
+} from './rules-guard.js';
 import { logger } from '../lib/logger.js';
 
 const SERVER_NAME = 'vapi-mcp';
@@ -27,13 +33,23 @@ const IMPLEMENTED_TOOLS = new Set([
   'list_assistants',
   'get_assistant',
   'create_assistant',
+  'update_assistant',
+  'delete_assistant',
   'list_calls',
   'get_call',
   'create_call',
+  'update_call',
+  'delete_call',
   'list_phone_numbers',
   'get_phone_number',
+  'create_phone_number',
+  'update_phone_number',
+  'delete_phone_number',
   'list_tools',
   'get_tool',
+  'create_tool',
+  'update_tool',
+  'delete_tool',
   'list_presets',
   'create_assistant_from_preset',
 ]);
@@ -57,11 +73,27 @@ function sanitizeErrorMessage(msg: string): string {
 
 async function executeTool(
   name: string,
-  args: Record<string, unknown> | undefined
+  args: Record<string, unknown> | undefined,
+  sessionState: SessionState
 ): Promise<{ content: Array<{ type: 'text'; text: string }>; isError?: boolean }> {
   try {
     const required = getRequiredForTool(name);
     validateRequired(name, args, required);
+
+    if (RULES_PROTECTED_TOOLS.has(name) && !sessionState.rulesAcknowledged) {
+      logger.warn('Protected tool rejected: rules not loaded', { tool: name });
+      throw new Error(`[RULES_REQUIRED] ${RULES_REQUIRED_MESSAGE}`);
+    }
+
+    if (name === 'get_vapi_behavior_rules') {
+      sessionState.rulesAcknowledged = true;
+    }
+    if (name === 'tools_documentation' && typeof args?.topic === 'string') {
+      const topic = args.topic.trim().toLowerCase();
+      if (RULES_TOPICS.has(topic)) {
+        sessionState.rulesAcknowledged = true;
+      }
+    }
 
     logger.debug('Tool call', { tool: name });
     let text: string;
@@ -86,6 +118,12 @@ async function executeTool(
       case 'create_assistant':
         text = JSON.stringify(await assistants.handleCreateAssistant(args ?? {}));
         break;
+      case 'update_assistant':
+        text = JSON.stringify(await assistants.handleUpdateAssistant(args ?? {}));
+        break;
+      case 'delete_assistant':
+        text = JSON.stringify(await assistants.handleDeleteAssistant(args ?? {}));
+        break;
       case 'list_calls':
         text = JSON.stringify(await calls.handleListCalls(args ?? {}));
         break;
@@ -95,17 +133,41 @@ async function executeTool(
       case 'create_call':
         text = JSON.stringify(await calls.handleCreateCall(args ?? {}));
         break;
+      case 'update_call':
+        text = JSON.stringify(await calls.handleUpdateCall(args ?? {}));
+        break;
+      case 'delete_call':
+        text = JSON.stringify(await calls.handleDeleteCall(args ?? {}));
+        break;
       case 'list_phone_numbers':
         text = JSON.stringify(await phoneNumbers.handleListPhoneNumbers());
         break;
       case 'get_phone_number':
         text = JSON.stringify(await phoneNumbers.handleGetPhoneNumber(args ?? {}));
         break;
+      case 'create_phone_number':
+        text = JSON.stringify(await phoneNumbers.handleCreatePhoneNumber(args ?? {}));
+        break;
+      case 'update_phone_number':
+        text = JSON.stringify(await phoneNumbers.handleUpdatePhoneNumber(args ?? {}));
+        break;
+      case 'delete_phone_number':
+        text = JSON.stringify(await phoneNumbers.handleDeletePhoneNumber(args ?? {}));
+        break;
       case 'list_tools':
         text = JSON.stringify(await vapiTools.handleListVapiTools());
         break;
       case 'get_tool':
         text = JSON.stringify(await vapiTools.handleGetVapiTool(args ?? {}));
+        break;
+      case 'create_tool':
+        text = JSON.stringify(await vapiTools.handleCreateVapiTool(args ?? {}));
+        break;
+      case 'update_tool':
+        text = JSON.stringify(await vapiTools.handleUpdateVapiTool(args ?? {}));
+        break;
+      case 'delete_tool':
+        text = JSON.stringify(await vapiTools.handleDeleteVapiTool(args ?? {}));
         break;
       case 'list_presets':
         text = JSON.stringify(presets.handleListPresets());
@@ -128,7 +190,7 @@ async function executeTool(
   }
 }
 
-export function createVapiMCPServer(): Server {
+export function createVapiMCPServer(sessionState: SessionState): Server {
   assertAllToolsImplemented();
   const server = new Server(
     {
@@ -148,7 +210,7 @@ export function createVapiMCPServer(): Server {
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
-    const result = await executeTool(name, args ?? undefined);
+    const result = await executeTool(name, args ?? undefined, sessionState);
     return result;
   });
 

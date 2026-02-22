@@ -6,6 +6,7 @@
 import express, { Request, Response } from 'express';
 import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
 import { createVapiMCPServer } from './mcp/server.js';
+import type { SessionState } from './mcp/rules-guard.js';
 import { isVapiConfigured, getOptionalMcpApiKey } from './config.js';
 import { logger } from './lib/logger.js';
 
@@ -65,13 +66,14 @@ export async function startHttpServer(): Promise<void> {
       return;
     }
     try {
+      const sessionState: SessionState = { rulesAcknowledged: false };
       const transport = new SSEServerTransport('/messages', res);
       const sessionId = transport.sessionId;
       transportsBySession[sessionId] = transport;
       transport.onclose = () => {
         delete transportsBySession[sessionId];
       };
-      const server = createVapiMCPServer();
+      const server = createVapiMCPServer(sessionState);
       await server.connect(transport);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

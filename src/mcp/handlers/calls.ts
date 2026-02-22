@@ -1,8 +1,8 @@
 /**
- * Vapi calls: list, get, create.
+ * Vapi calls: list, get, create, update, delete.
  */
 
-import { vapiGet, vapiPost } from '../../lib/vapi-client.js';
+import { vapiGet, vapiPost, vapiPatch, vapiDelete } from '../../lib/vapi-client.js';
 
 function normalizeListResponse(data: unknown): unknown[] {
   if (Array.isArray(data)) return data;
@@ -60,4 +60,28 @@ export async function handleCreateCall(args: Record<string, unknown>): Promise<R
   }
   const data = await vapiPost<Record<string, unknown>>('/call', body);
   return data ?? {};
+}
+
+export async function handleUpdateCall(args: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const callId = String(args?.callId ?? '');
+  if (!callId) return { error: 'callId is required' };
+  const body: Record<string, unknown> = {};
+  if (typeof args?.status === 'string') body.status = args.status;
+  if (typeof args?.assistantOverrides === 'string' && args.assistantOverrides) {
+    try {
+      body.assistantOverrides = JSON.parse(args.assistantOverrides);
+    } catch {
+      // ignore
+    }
+  }
+  if (Object.keys(body).length === 0) return { error: 'At least one field to update is required (status, assistantOverrides)' };
+  const data = await vapiPatch<Record<string, unknown>>(`/call/${callId}`, body);
+  return data ?? {};
+}
+
+export async function handleDeleteCall(args: Record<string, unknown>): Promise<Record<string, unknown>> {
+  const callId = String(args?.callId ?? '');
+  if (!callId) return { error: 'callId is required' };
+  await vapiDelete<undefined>(`/call/${callId}`);
+  return { deleted: true, callId };
 }

@@ -79,15 +79,15 @@ Add to `.cursor/mcp.json` (or your MCP config). Use the absolute path to your cl
 ## Tools
 
 - **System:** `tools_documentation`, `get_vapi_behavior_rules`, `vapi_health_check`
-- **Assistants:** `list_assistants`, `get_assistant`, `create_assistant`
-- **Calls:** `list_calls`, `get_call`, `create_call`
-- **Phone Numbers:** `list_phone_numbers`, `get_phone_number`
-- **Tools (Vapi custom tools):** `list_tools`, `get_tool`
+- **Assistants:** `list_assistants`, `get_assistant`, `create_assistant`, `update_assistant`, `delete_assistant` (full CRUD; use `update_assistant` with `serverUrl` for webhook/server URL)
+- **Calls:** `list_calls`, `get_call`, `create_call`, `update_call`, `delete_call`
+- **Phone Numbers:** `list_phone_numbers`, `get_phone_number`, `create_phone_number`, `update_phone_number`, `delete_phone_number` (full CRUD)
+- **Tools (Vapi custom tools):** `list_tools`, `get_tool`, `create_tool`, `update_tool`, `delete_tool` (full CRUD for endpoint tools)
 - **Presets (vorgefertigte Agents):** `list_presets`, `create_assistant_from_preset` (support, recruiting, appointment)
 
 Call `tools_documentation` with no args for an overview, or with `topic` and `depth` for per-tool docs.
 
-This MCP is standalone for building and managing Vapi voice agents. Assistant and phone number IDs can be used in create_call or in any external system (Lovable, Cursor, automation).
+This MCP is standalone for building and managing Vapi voice agents. Assistants, custom tools, and phone numbers support full CRUD. Configure webhook/server URL via `update_assistant` or `update_phone_number` (serverUrl). Assistant and phone number IDs can be used in create_call or in any external system (Lovable, Cursor, automation).
 
 ## Environment
 

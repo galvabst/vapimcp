@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createVapiMCPServer } from './mcp/server.js';
+import type { SessionState } from './mcp/rules-guard.js';
 import { logger } from './lib/logger.js';
 
 process.on('uncaughtException', (err) => {
@@ -17,8 +18,9 @@ process.on('unhandledRejection', (reason) => {
 async function main(): Promise<void> {
   const mode = process.env.MCP_MODE ?? (process.env.NODE_ENV === 'production' ? 'http' : 'stdio');
   if (mode === 'stdio') {
+    const sessionState: SessionState = { rulesAcknowledged: false };
     const transport = new StdioServerTransport();
-    const server = createVapiMCPServer();
+    const server = createVapiMCPServer(sessionState);
     await server.connect(transport);
     return;
   }
