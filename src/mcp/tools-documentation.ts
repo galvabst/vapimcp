@@ -1,8 +1,13 @@
 /**
  * getToolsOverview(depth), getToolDocumentation(topic, depth).
+ * Supports tool names and Vapi behavior topics: vapi_behavior_rules, vapi_architecture_templates, vapi_mandatory_build_process, vapi_output_contract.
  */
 
 import { vapiToolDefinitions } from './tools.js';
+import {
+  getVapiBehaviorRulesCore,
+  getVapiBehaviorRulesByTopic,
+} from './content/vapi-behavior-rules.js';
 
 const EXTRA_DOCS: Record<string, { tips?: string[]; example?: string; useCases?: string[] }> = {
   list_assistants: {
@@ -55,9 +60,14 @@ export function getToolsOverview(depth: 'essentials' | 'full'): string {
 
 export function getToolDocumentation(topic: string, depth: 'essentials' | 'full'): string {
   const normalized = topic.trim().toLowerCase();
+  if (normalized === 'vapi_behavior_rules') {
+    return getVapiBehaviorRulesCore();
+  }
+  const vapiTopicContent = getVapiBehaviorRulesByTopic(topic);
+  if (vapiTopicContent) return vapiTopicContent;
   const def = vapiToolDefinitions.find((t) => t.name.toLowerCase() === normalized);
   if (!def) {
-    return `Tool "${topic}" not found. Use tools_documentation() without parameters for a list of all tools.`;
+    return `Tool "${topic}" not found. Use tools_documentation() without parameters for a list of all tools. Topics include: vapi_behavior_rules, vapi_architecture_templates, vapi_mandatory_build_process, vapi_output_contract.`;
   }
   const extra = EXTRA_DOCS[def.name];
   const parts: string[] = [`# ${def.name}`, '', def.description, ''];

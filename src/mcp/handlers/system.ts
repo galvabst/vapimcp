@@ -1,9 +1,13 @@
 /**
- * System handlers: vapi_health_check, tools_documentation.
+ * System handlers: vapi_health_check, tools_documentation, get_vapi_behavior_rules.
  */
 
 import { isVapiConfigured } from '../../config.js';
 import { getToolsOverview, getToolDocumentation } from '../tools-documentation.js';
+import {
+  getVapiBehaviorRulesCore,
+  getVapiBehaviorRulesBySection,
+} from '../content/vapi-behavior-rules.js';
 
 const SERVER_VERSION = '1.0.0';
 const startTime = Date.now();
@@ -47,4 +51,16 @@ export function handleToolsDocumentation(args: Record<string, unknown> | undefin
       ? args.depth
       : 'essentials';
   return topic.trim() ? getToolDocumentation(topic, depth) : getToolsOverview(depth);
+}
+
+/**
+ * get_vapi_behavior_rules: without section returns core; with section returns that topic (templates | build_process | output_contract).
+ */
+export function handleGetVapiBehaviorRules(args: Record<string, unknown> | undefined): string {
+  const section = typeof args?.section === 'string' ? args.section.trim().toLowerCase() : '';
+  if (section) {
+    const content = getVapiBehaviorRulesBySection(section);
+    if (content) return content;
+  }
+  return getVapiBehaviorRulesCore();
 }

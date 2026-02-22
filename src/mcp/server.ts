@@ -8,7 +8,7 @@ import {
   CallToolRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import { vapiToolDefinitions } from './tools.js';
-import { handleVapiHealthCheck, handleToolsDocumentation } from './handlers/system.js';
+import { handleVapiHealthCheck, handleToolsDocumentation, handleGetVapiBehaviorRules } from './handlers/system.js';
 import * as assistants from './handlers/assistants.js';
 import * as calls from './handlers/calls.js';
 import * as phoneNumbers from './handlers/phone_numbers.js';
@@ -22,6 +22,7 @@ const SERVER_VERSION = '1.0.0';
 
 const IMPLEMENTED_TOOLS = new Set([
   'tools_documentation',
+  'get_vapi_behavior_rules',
   'vapi_health_check',
   'list_assistants',
   'get_assistant',
@@ -67,6 +68,9 @@ async function executeTool(
     switch (name) {
       case 'tools_documentation':
         text = handleToolsDocumentation(args);
+        break;
+      case 'get_vapi_behavior_rules':
+        text = handleGetVapiBehaviorRules(args);
         break;
       case 'vapi_health_check': {
         const health = await handleVapiHealthCheck();

@@ -50,6 +50,7 @@ MCP_MODE=http npm start
 2. **URL:** `https://<your-railway-domain>/sse`
 3. If you set `MCP_API_KEY` on Railway, use **Authorization: Bearer &lt;MCP_API_KEY&gt;** in Lovable.
 4. Save. Lovable can then use Vapi tools (list_assistants, create_call, etc.) for voice agents and outbound calls.
+5. **Behavior rules (optional):** So the agent calls `get_vapi_behavior_rules()` first when building assistants/calls, add the short instruction from [docs/LOVABLE_VAPI_RULES.md](docs/LOVABLE_VAPI_RULES.md) to Custom Knowledge or Project Instruction.
 
 ## Cursor configuration
 
@@ -77,7 +78,7 @@ Add to `.cursor/mcp.json` (or your MCP config). Use the absolute path to your cl
 
 ## Tools
 
-- **System:** `tools_documentation`, `vapi_health_check`
+- **System:** `tools_documentation`, `get_vapi_behavior_rules`, `vapi_health_check`
 - **Assistants:** `list_assistants`, `get_assistant`, `create_assistant`
 - **Calls:** `list_calls`, `get_call`, `create_call`
 - **Phone Numbers:** `list_phone_numbers`, `get_phone_number`

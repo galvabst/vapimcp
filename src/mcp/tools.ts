@@ -15,12 +15,22 @@ export interface ToolDefinition {
 export const vapiToolDefinitions: ToolDefinition[] = [
   {
     name: 'tools_documentation',
-    description: 'Get documentation for all MCP tools. Call without parameters for overview; use topic and depth for specific tool docs.',
+    description: 'Get documentation for all MCP tools. Call without parameters for overview; use topic and depth for specific tool docs. Topics include tool names and: vapi_behavior_rules, vapi_architecture_templates, vapi_mandatory_build_process, vapi_output_contract.',
     inputSchema: {
       type: 'object',
       properties: {
-        topic: { type: 'string', description: 'Tool name e.g. list_assistants, or leave empty for overview' },
+        topic: { type: 'string', description: 'Tool name e.g. list_assistants, or vapi_behavior_rules, vapi_architecture_templates, vapi_mandatory_build_process, vapi_output_contract' },
         depth: { type: 'string', description: 'essentials or full', enum: ['essentials', 'full'] },
+      },
+    },
+  },
+  {
+    name: 'get_vapi_behavior_rules',
+    description: 'Get Vapi behavior rules (core). Call first when building or editing assistants/calls. Optional section: templates | build_process | output_contract for on-demand detail.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        section: { type: 'string', description: 'Optional: templates | build_process | output_contract for that topic only', enum: ['templates', 'build_process', 'output_contract'] },
       },
     },
   },
